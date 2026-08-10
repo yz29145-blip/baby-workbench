@@ -1,6 +1,6 @@
 /* 宝宝育儿工作台 · 离线缓存 */
-const CACHE = 'baby-wb-v6.35';
-const ASSETS = ['./','./index.html','./style.css','./data.js','./app.js','./manifest.webmanifest','./icon.svg'];
+const CACHE = 'baby-wb-v6.36';
+const ASSETS = ['./','./index.html','./style.css','./data.js','./app.js','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./icon-maskable.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
