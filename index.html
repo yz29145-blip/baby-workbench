@@ -8323,7 +8323,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.35 · 同步设置页新增「GitHub 令牌」明文显示（👁 显示/隐藏 + 复制）与「在 GitHub 查看此同步」直达链接，换网址重填同步时可直接抄存令牌；摘要卡保持一行四图标</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.36 · 全新卡通小马桌面图标（薄荷青渐变圆角，带光晕），提升主屏幕辨识度；同步设置页保留 GitHub 令牌显示/复制与直达链接</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
