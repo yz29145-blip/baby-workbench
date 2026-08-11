@@ -8353,7 +8353,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.41 · 修正发育任务「本周练习次数」统计口径：原按日期去重导致同日打卡多项能力只计 1 次，现按各项能力实际打卡次数累加；每项能力行新增「本周 x/rec 次、连续天数、累计次数」</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.42 · 图标更换为用户上传的小马头像：主体居中、铺满图标、保留一小圈白色边缘，并做轻微清晰度与色泽增强；v6.41 已修正发育任务本周练习次数统计口径</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
