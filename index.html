@@ -8323,7 +8323,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.37 · 重新设计更生动饱满的卡通小马图标；一键重置现在会同时清空 localStorage 数据、Service Worker 缓存与 indexedDB，真正回到初始状态</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.38 · 使用用户上传的粉色卡通小飞马作为桌面图标，保留原图粉色背景与圆角裁切</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
