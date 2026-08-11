@@ -5036,6 +5036,19 @@ html[data-theme="dark"] .tabbar{
   .segs::-webkit-scrollbar-thumb{ background:color-mix(in srgb,var(--acc) 38%,transparent); border-radius:99px }
   .segs::-webkit-scrollbar-track{ background:transparent }
 }
+/* 发育任务行：本周/连续/累计 统计条（v6.41 修正次数口径后新增） */
+.item.dev .t2.dev-stat{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  align-items:center !important;
+  gap:6px !important;
+  margin-top:4px !important
+}
+.item.dev .dev-total{
+  font-size:11px !important;
+  font-weight:600 !important;
+  color:var(--tx3) !important
+}
 
 </style>
 </head>
@@ -7821,22 +7834,27 @@ function todoHTML(){
     const next=list.filter(d=>d.mFrom>=m&&d.mFrom<m+4&&!(m>=d.mFrom&&m<d.mTo));
     const past=list.filter(d=>d.mTo<=m&&!d.done);
     const doneCnt=cur.filter(d=>d.done).length;
-    const wkTotal=devWeekDays(cur.map(d=>d.id));
+    // 本周练习次数 = 当前月龄各项能力本周打卡次数之和。
+    // （旧实现用 devWeekDays 跨任务按“日期”去重，分子是天数、分母是次数，量纲不一致，
+    //   导致同一天打卡多项能力也只显示 1，与实际打卡次数对不上。）
+    const wkTotal=cur.reduce((s,d)=>s+devWeek(d.id),0);
     const recTotal=cur.reduce((s,d)=>s+(d.rec||7),0);
+    const wkDays=devWeekDays(cur.map(d=>d.id));   // 本周有练习的天数（另行展示，不参与上面的次数口径）
     const card=(arr,t)=>arr.length?`<div class="sec-t">${t}</div><div class="card pad0">${arr.map(d=>{
-      const wk=devWeek(d.id), rec=d.rec||7, st=devStreak(d.id), last=devLast(d.id), todayDone=devToday(d.id), total=devTotal(d.id);
+      const wk=devWeek(d.id), rec=d.rec||7, st=devStreak(d.id), todayDone=devToday(d.id), total=devTotal(d.id);
       return `<div class="item dev">
         <button class="ck ck-dev ${todayDone?'on':''}" data-quick="devlog:${esc(d.id)}" title="${todayDone?'今日已练，点击取消':'今日未练，点击打卡'}"><span class="ck-ic">✓</span></button>
         <div class="bd"><div class="t1 ${d.done?'done':''}" style="font-size:14px">${esc(d.content)}</div>
-          <div class="t2"><span class="tag ${catTag(d.cat)}">${esc(d.cat)}</span><span class="tag t-gray">适应 ${d.mFrom}-${d.mTo}月</span></div></div>
+          <div class="t2"><span class="tag ${catTag(d.cat)}">${esc(d.cat)}</span><span class="tag t-gray">适应 ${d.mFrom}-${d.mTo}月</span></div>
+          <div class="t2 dev-stat"><span class="tag ${wk>=rec?'t-green':'t-cyan'}">本周 ${wk}/${rec} 次</span>${st>1?`<span class="tag t-amber">连续 ${st} 天</span>`:''}${total?`<span class="dev-total">累计 ${total} 次</span>`:''}</div></div>
         <div class="dev-right"><button class="mini ${d.done?'ms-badge':'ms-btn'}" data-quick="devdone:${esc(d.id)}" title="${d.done?'点击取消里程碑达成':'宝宝真正掌握后，点击标记里程碑'}">${d.done?'✓ 已达成':`<span class="mi-ic">${ICON('trophy')}</span>里程碑`}</button></div>
       </div>`; }).join('')}</div>`:'';
-    body=infoLineHTML('todo-dev','今日练习每天打卡，里程碑真正掌握后再标记')
+    body=infoLineHTML('todo-dev','每项能力每天可打卡 1 次，本周次数按各项能力累加；里程碑真正掌握后再标记')
       +`${cur.length?`<div class="card"><div style="display:flex;align-items:baseline;gap:8px">
         <span style="font-size:24px;font-weight:900;color:var(--acc);letter-spacing:-1px">${wkTotal}/${recTotal}</span>
         <span style="font-size:13px;color:var(--tx3);font-weight:600">本周练习次数（当前月龄 ${cur.length} 项能力）</span></div>
-        <div class="prog"><i style="width:${recTotal?Math.round(wkTotal/recTotal*100):0}%"></i></div>
-        <div style="font-size:12px;color:var(--tx3);margin-top:6px">已达成里程碑 ${doneCnt}/${cur.length} 项</div></div>`:''}
+        <div class="prog"><i style="width:${recTotal?Math.min(100,Math.round(wkTotal/recTotal*100)):0}%"></i></div>
+        <div style="font-size:12px;color:var(--tx3);margin-top:6px">本周已练 ${wkDays} 天 · 已达成里程碑 ${doneCnt}/${cur.length} 项</div></div>`:''}
       ${card(cur,'当前月龄（'+m+'月）')}
       ${card(past,'之前未打卡（可回补）')}
       ${card(next,'即将到来')}
@@ -8335,7 +8353,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.40 · 图标更亮且小马垂直居中；大幅压缩图标体积；Service Worker 改为缓存优先+后台更新，首次打开与后续启动显著提速；新版本就绪时提示刷新</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.41 · 修正发育任务「本周练习次数」统计口径：原按日期去重导致同日打卡多项能力只计 1 次，现按各项能力实际打卡次数累加；每项能力行新增「本周 x/rec 次、连续天数、累计次数」</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
@@ -9170,7 +9188,7 @@ document.addEventListener('click',async function(e){
       } else {
         put('devlogs',{id:uid(),k:id,date:today(),u:now()});
         const wk=devWeek(id);
-        toast('今日已练 · 本周 '+wk+'/'+(r.rec||7)+' 天 🎉');
+        toast('今日已练 · 本周 '+wk+'/'+(r.rec||7)+' 次 🎉');
       }
     } else if(k==='devdone'){
       const r=get('devtasks',id); if(!r) return;
@@ -10053,7 +10071,7 @@ function boot(){
     // 测试钩子：把导航栈与弹层计数归零并回到首页基线，便于各用例独立断言返回逻辑
     resetNav:function(){ navDepth=0; sheetStack=0; VIEW='home'; SUB.more='grid'; SUB.doc=null; SUB.early=null; try{ history.replaceState({view:'home',sub:'',depth:0},'','#home'); }catch(e){} render(); },
     createCloud:createCloud,pushCloud:pushCloud,pullCloud:pullCloud,
-    devWeek:devWeek,devStreak:devStreak,devLast:devLast,
+    devWeek:devWeek,devStreak:devStreak,devLast:devLast,devTotal:devTotal,devWeekDays:devWeekDays,weekStart:weekStart,addDays:addDays,
     // v2.8 新增测试钩子：喂养明细与结构化健康录入
     put:put, rows:rows, today:today, uid:uid, todayMilk:todayMilk, todayFeeds:todayFeeds, diaperCount:diaperCount, formFeed:formFeed,
     setEnc:async function(pass){ if(!SYNC.salt) SYNC.salt=b64u(crypto.getRandomValues(new Uint8Array(16))); ENC_KEY=await deriveKey(pass,unb64u(SYNC.salt)); SYNC.enc=1; saveSync(); },
