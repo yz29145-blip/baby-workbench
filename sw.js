@@ -1,5 +1,5 @@
 /* 宝宝育儿工作台 · 离线缓存 */
-const CACHE = 'baby-wb-v6.43';
+const CACHE = 'baby-wb-v6.44';
 const ASSETS = [
   './',
   './index.html',
