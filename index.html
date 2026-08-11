@@ -7961,7 +7961,7 @@ function todayHTML(){
   rows('caretasks').forEach(c=>{ const d=careNext(c); if(d&&d<=today())
     items.push({pri:3,date:d,kind:'care',id:c.id,title:c.name,sub:c.cycle+' · '+c.owner,icon:'care',done:false,quick:'care:'+c.id,typeLabel:'护理',typeCls:'t-cyan'}); });
   curDevTasks().forEach(d=>{ if(!devToday(d.id))
-    items.push({pri:4,date:today(),kind:'dev',id:d.id,title:d.content,sub:(d.cat||'')+' · 适应'+d.mFrom+'-'+d.mTo+'月',icon:'target',done:false,quick:'devlog:'+d.id,typeLabel:'发育',typeCls:'t-amber'});
+    items.push({pri:4,date:today(),kind:'dev',id:d.id,title:d.content,sub:(d.cat||'')+' · 适应'+d.mFrom+'-'+d.mTo+'月',icon:'target',done:false,typeLabel:'发育',typeCls:'t-amber'});
   });
   rows('todos').forEach(t=>{ if(!t.done&&t.date<=today())
     items.push({pri:5,date:t.date,kind:'todo',id:t.id,title:t.title,sub:(t.time?t.time+' ':'')+(t.note||''),icon:'docs',done:!!t.done,tododone:t.id,time:t.time,typeLabel:'提醒',typeCls:'t-purple'}); });
@@ -7973,16 +7973,23 @@ function todayHTML(){
   rows('vaccines').forEach(v=>{ if(v.status==='已完成') doneItems.push({kind:'vaccine',id:v.id,title:v.name,sub:v.type+'疫苗',typeLabel:'疫苗',typeCls:'t-pink',undo:'vaccine:'+v.id,icon:'vaccine'}); });
   rows('checkups').forEach(c=>{ if(c.status==='已完成') doneItems.push({kind:'checkup',id:c.id,title:c.label,sub:c.item||'',typeLabel:'儿保',typeCls:'t-blue',undo:'checkup:'+c.id,icon:'hospital'}); });
   rows('caretasks').forEach(c=>{ const d=careNext(c); if(!d||d>today()) doneItems.push({kind:'care',id:c.id,title:c.name,sub:c.cycle+' · '+c.owner,typeLabel:'护理',typeCls:'t-cyan',undo:'care:'+c.id,icon:'care'}); });
-  // 发育任务：今日已打卡的，与疫苗/儿保/护理一致归入「今日已完成」（撤销即取消今日打卡）
-  curDevTasks().forEach(d=>{ if(devToday(d.id)) doneItems.push({kind:'dev',id:d.id,title:d.content,sub:(d.cat||'')+' · 适应'+d.mFrom+'-'+d.mTo+'月',typeLabel:'发育',typeCls:'t-amber',quick:'devlog:'+d.id,icon:'target'}); });
+  // 注：发育任务打卡已移至「发育任务」页，不在「今日待办」内联打卡，故不在此列「今日已完成」
   const rowHTML=(it)=>{
     const r=relText(it.date);
+    const typeTag=`<span class="tag ${it.typeCls}">${esc(it.typeLabel)}</span>`;
+    if(it.kind==='dev'){
+      // 发育任务：取消「今日打卡」窗格；改为点击进入「发育任务」页打卡 / 标记里程碑
+      return `<div class="item todo-item" data-sub2="todo:dev">
+        <div class="ic ic-amber">${ICON('target')}</div>
+        <div class="bd"><div class="t1">${esc(it.title)}</div><div class="t2">${typeTag}${esc(it.sub||'')}</div></div>
+        <span class="rt tag ${r.c}">${esc(r.t)}</span>
+      </div>`;
+    }
     const ck=it.tododone?`data-tododone="${esc(it.tododone)}"`:`data-quick="${esc(it.quick)}"`;
-    const bd = it.kind==='todo' ? `data-act="editTodo:${esc(it.id)}"`
-             : (it.kind==='dev' ? '' : `data-todo="${it.kind}:${esc(it.id)}"`);
+    const bd = it.kind==='todo' ? `data-act="editTodo:${esc(it.id)}"`:`data-todo="${it.kind}:${esc(it.id)}"`;
     return `<div class="item todo-item ${it.done?'is-done':''}">
       <div class="ck ${it.done?'done':''}" ${ck}>${it.done?'✓':''}</div>
-      <div class="bd" ${bd}><div class="t1 ${it.done?'done':''}">${esc(it.title)}</div><div class="t2">${esc(it.sub||'')}</div></div>
+      <div class="bd" ${bd}><div class="t1 ${it.done?'done':''}">${esc(it.title)}</div><div class="t2">${typeTag}${esc(it.sub||'')}</div></div>
       <span class="rt tag ${r.c}">${esc(r.t)}${it.time&&it.kind==='todo'?' · '+esc(it.time):''}</span>
     </div>`;
   };
@@ -7996,7 +8003,7 @@ function todayHTML(){
     const r=relText(t.date);
     return `<div class="item todo-item" data-act="editTodo:${esc(t.id)}">
       <div class="ic ic-purple">${ICON('docs')}</div>
-      <div class="bd"><div class="t1">${esc(t.title)}</div><div class="t2">${esc(t.time||'')} ${esc(t.note||'')}</div></div>
+      <div class="bd"><div class="t1">${esc(t.title)}</div><div class="t2"><span class="tag t-purple">提醒</span>${esc(t.time||'')} ${esc(t.note||'')}</div></div>
       <span class="rt tag ${r.c}">${esc(r.t)}</span>
     </div>`;
   }).join('')}</div>`:'';
@@ -8006,7 +8013,7 @@ function todayHTML(){
       const attr=`data-undo="${esc(undoKey)}"`;
       return `<div class="item done-item">
         <div class="ck done" ${attr}>✓</div>
-        <div class="bd"><div class="t1 done">${esc(it.title)}</div><div class="t2">${esc(it.sub||'')}</div></div>
+        <div class="bd"><div class="t1 done">${esc(it.title)}</div><div class="t2"><span class="tag ${it.typeCls}">${esc(it.typeLabel)}</span>${esc(it.sub||'')}</div></div>
         <span class="rt undo" ${attr}>撤销</span>
       </div>`;
     }).join('')}</div>`:'';
@@ -8323,7 +8330,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.38 · 使用用户上传的粉色卡通小飞马作为桌面图标，保留原图粉色背景与圆角裁切</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.39 · 今日待办按类型用彩色标签区分（疫苗/儿保/护理/发育/提醒）；发育任务改为点击进入「发育任务」页打卡，取消今日内联打卡窗格</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
