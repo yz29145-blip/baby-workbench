@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <title>宝宝育儿工作台</title>
-<meta name="theme-color" content="#56B8A6">
+<meta name="theme-color" content="#14B8A6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="育儿工作台">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png">
 <style>
 /* ============================================================
    宝宝育儿工作台 · 现代清新工具类配色系统（v2.2）
@@ -1973,6 +1973,7 @@ input[type=date].inp{
   font-size:13.5px;
   font-weight:700;
   opacity:0;
+  cursor:pointer;
   transition:.24s cubic-bezier(.34,1.4,.64,1);
   pointer-events:none;
   box-shadow:var(--sd2);
@@ -6599,10 +6600,14 @@ function relTime(dateStr,timeStr){
   const h=Math.floor(mins/60), mm=mins%60;
   return h+'小时'+(mm?mm+'分':'')+'前';
 }
-function toast(msg){
+function toast(msg, opts){
+  opts = opts || {};
   const t=$('#toast'); if(!t) return;
   t.textContent=msg; t.classList.add('on');
-  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2100);
+  if(typeof opts.onClick==='function'){
+    t.onclick = ()=>{ opts.onClick(); t.onclick=null; };
+  }
+  clearTimeout(t._h); t._h=setTimeout(()=>{ t.classList.remove('on'); t.onclick=null; }, opts.time||2100);
 }
 function confirmApp(msg){
   return new Promise(res=>{
@@ -8330,7 +8335,7 @@ function moreHTML(){
       <div class="kv"><div class="k">二类疫苗</div><div class="v"><span class="pills"><span class="pill ${st.showNonNip?'on':''}" data-act="toggleNip">${st.showNonNip?'已加入计划':'未加入'}</span></span></div></div>
       <div class="kv"><div class="k">日间 / 夜间</div><div class="v"><span class="pills">${[['auto',ICON('bolt')+' 跟随系统'],['light',ICON('sun')+' 日间'],['dark',ICON('moon')+' 夜间']].map(([k,l])=>`<span class="pill ${(st.theme||'auto')===k?'on':''}" data-act="setTheme:${k}">${l}</span>`).join('')}</span></div></div>
       <div class="kv"><div class="k">重排日期</div><div class="v"><span class="lnk" style="color:var(--acc);cursor:pointer;font-weight:700" data-act="reseed">按出生日期重新计算全部计划</span></div></div>
-      <div class="kv"><div class="k">版本</div><div class="v">v6.39 · 今日待办按类型用彩色标签区分（疫苗/儿保/护理/发育/提醒）；发育任务改为点击进入「发育任务」页打卡，取消今日内联打卡窗格</div></div>
+      <div class="kv"><div class="k">版本</div><div class="v">v6.40 · 图标更亮且小马垂直居中；大幅压缩图标体积；Service Worker 改为缓存优先+后台更新，首次打开与后续启动显著提速；新版本就绪时提示刷新</div></div>
       </div>
       <div class="sec-t"><span class="sti">${ICON('book')}</span>文档与帮助</div>
       <div class="card">
@@ -10003,10 +10008,25 @@ function boot(){
     mq.addEventListener?mq.addEventListener('change',h):mq.addListener&&mq.addListener(h);
   }
   if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
-    // 注册 SW；新版本部署后让页面自动生效（iOS PWA 对 SW 更新较顽固，
-    // 仅靠 skipWaiting/clients.claim 有时不刷新，故监听 controllerchange 主动 reload）
+    // 注册 SW：新版本部署后自动生效。新版 SW 安装完成后会在后台等待，
+    // 通过 postMessage 触发 skipWaiting；controllerchange 时主动 reload。
     if(navigator.serviceWorker){
-      navigator.serviceWorker.register('sw.js').catch(()=>{});
+      navigator.serviceWorker.register('sw.js').then(reg=>{
+        let waitingWorker=null;
+        const promptUpdate=()=>{
+          if(!waitingWorker) return;
+          toast('新版本已就绪，点击刷新',{time:5000,onClick:()=>waitingWorker.postMessage({type:'SKIP_WAITING'})});
+        };
+        reg.addEventListener('updatefound',()=>{
+          const newWorker=reg.installing;
+          newWorker.addEventListener('statechange',()=>{
+            if(newWorker.state==='installed' && navigator.serviceWorker.controller){
+              waitingWorker=newWorker;
+              setTimeout(promptUpdate,1200);
+            }
+          });
+        });
+      }).catch(()=>{});
       let _swReloading=false;
       navigator.serviceWorker.addEventListener('controllerchange', ()=>{
         if(_swReloading) return; _swReloading=true;
